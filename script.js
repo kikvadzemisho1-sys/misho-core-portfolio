@@ -1,49 +1,127 @@
-const connectBtn = document.getElementById("connect-btn");
-const coreScreen = document.getElementById("core-screen");
-const coreNode = document.querySelector(".core-node");
+const enterButton = document.querySelector("#enter-button");
+const intro = document.querySelector("#intro");
+const portfolio = document.querySelector("#portfolio");
+const localTime = document.querySelector("#local-time");
+const currentYear = document.querySelector("#current-year");
+const pointerGlow = document.querySelector(".ambient__pointer");
+const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-connectBtn.addEventListener("click", () => {
-  // 1. ბირთვი იწყებს სწრაფ ტრიალს და განათებას
-  coreNode.classList.add("active-pulse");
-  connectBtn.style.opacity = "0";
-  connectBtn.style.pointerEvents = "none";
+function updateClock() {
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Tbilisi",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date());
 
-  // 2. 0.8 წამში გადავდივართ მთავარ ინტერფეისზე
-  setTimeout(() => {
-    coreScreen.style.opacity = "0";
+  localTime.textContent = `TBILISI, GE · ${time}`;
+}
 
-    setTimeout(() => {
-      coreScreen.style.display = "none";
+updateClock();
+window.setInterval(updateClock, 30_000);
+currentYear.textContent = new Date().getFullYear();
 
-      // შევქმნათ და გამოვაჩინოთ მთავარი ინტერფეისის კონტეინერი
-      renderMainInterface();
-    }, 600);
-  }, 800);
+enterButton.addEventListener("click", () => {
+  portfolio.inert = false;
+  portfolio.setAttribute("aria-hidden", "false");
+  portfolio.classList.add("is-visible");
+  intro.inert = true;
+  intro.classList.add("is-leaving");
+  intro.setAttribute("aria-hidden", "true");
+
+  window.setTimeout(() => {
+    intro.hidden = true;
+    document.querySelector("#hero-title").focus({ preventScroll: true });
+  }, 1100);
 });
 
-function renderMainInterface() {
-  const mainUI = document.createElement("main");
-  mainUI.id = "main-ui";
-  mainUI.className = "main-ui";
+const revealItems = document.querySelectorAll(".reveal");
 
-  mainUI.innerHTML = `
-    <header class="top-bar">
-      <div class="brand-code">MK // CORE_OS_v1.0</div>
-      <div class="status-indicator">
-        <span class="dot"></span> NODE_CONNECTED
-      </div>
-    </header>
+if (motionPreference.matches || !("IntersectionObserver" in window)) {
+  revealItems.forEach((item) => item.classList.add("is-revealed"));
+} else {
+  const revealObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-revealed");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.14 },
+  );
 
-    <section class="hero-container">
-      <h1 class="glitch-title">MISHO KIKVADZE</h1>
-      <p class="role-desc">CREATIVE FRONT-END ARCHITECT</p>
-    </section>
-  `;
+  revealItems.forEach((item) => revealObserver.observe(item));
+}
 
-  document.body.appendChild(mainUI);
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 
-  // რბილი გამოჩენა (Fade-in)
-  requestAnimationFrame(() => {
-    mainUI.classList.add("visible");
+if (finePointer.matches && !motionPreference.matches) {
+  let targetX = window.innerWidth / 2;
+  let targetY = window.innerHeight / 2;
+  let currentX = targetX;
+  let currentY = targetY;
+  let frame = 0;
+
+  function animatePointer() {
+    currentX += (targetX - currentX) * 0.09;
+    currentY += (targetY - currentY) * 0.09;
+    pointerGlow.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate3d(-50%, -50%, 0)`;
+
+    if (Math.abs(targetX - currentX) > 0.1 || Math.abs(targetY - currentY) > 0.1) {
+      frame = window.requestAnimationFrame(animatePointer);
+    } else {
+      frame = 0;
+    }
+  }
+
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+      targetX = event.clientX;
+      targetY = event.clientY;
+      pointerGlow.style.opacity = "1";
+
+      if (!frame) {
+        frame = window.requestAnimationFrame(animatePointer);
+      }
+    },
+    { passive: true },
+  );
+
+  document.documentElement.addEventListener("pointerleave", () => {
+    pointerGlow.style.opacity = "0";
+  });
+
+  document.documentElement.addEventListener("pointerenter", () => {
+    pointerGlow.style.opacity = "1";
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && frame) {
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+    }
+  });
+}
+
+if (finePointer.matches && !motionPreference.matches) {
+  document.querySelectorAll("[data-tilt]").forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const bounds = card.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width;
+      const y = (event.clientY - bounds.top) / bounds.height;
+
+      card.style.setProperty("--tilt-x", `${(x - 0.5) * 2.4}deg`);
+      card.style.setProperty("--tilt-y", `${(0.5 - y) * 2.4}deg`);
+      card.style.setProperty("--lift", "-3px");
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--tilt-x", "0deg");
+      card.style.setProperty("--tilt-y", "0deg");
+      card.style.setProperty("--lift", "0px");
+    });
   });
 }
