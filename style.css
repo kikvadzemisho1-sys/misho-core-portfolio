@@ -1,0 +1,81 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  width: 100%;
+  height: 100vh;
+  background-color: #030712;
+  font-family: "Courier New", Courier, monospace;
+  color: #38bdf8;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* აბსტრაქტული ნისლის ეფექტი ფონზე */
+.void-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #0f172a 0%, #030712 80%);
+  z-index: -1;
+}
+
+/* საწყისი ეკრანის კონტეინერი */
+.core-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+
+/* მინიმალისტური ციფრული ბირთვი */
+.core-node {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px dashed rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+  animation: slow-spin 10s linear infinite;
+}
+
+@keyframes slow-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.system-label {
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: rgba(56, 189, 248, 0.6);
+}
+
+/* მინიმალისტური ღილაკი */
+.core-btn {
+  background: transparent;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  padding: 10px 24px;
+  font-size: 14px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.core-btn:hover {
+  background: #38bdf8;
+  color: #030712;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
